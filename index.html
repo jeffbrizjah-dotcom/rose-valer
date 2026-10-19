@@ -23,7 +23,10 @@
   /* Antes de pintar: activar JS, saltar la intro si ya se vio en esta sesión y respetar "reducir movimiento" */
   (function (h) {
     h.classList.add('js');
-    try { if (sessionStorage.getItem('rv:intro')) h.classList.add('no-intro'); } catch (e) { h.classList.add('no-intro'); }
+    // La intro sale en la primera visita y SIEMPRE al recargar; al navegar por enlaces internos no
+    var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+    var recarga = nav ? nav.type === 'reload' : (performance.navigation && performance.navigation.type === 1);
+    try { if (!recarga && sessionStorage.getItem('rv:intro')) h.classList.add('no-intro'); } catch (e) { if (!recarga) h.classList.add('no-intro'); }
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) h.classList.add('rm');
   })(document.documentElement);
 </script>
@@ -136,28 +139,38 @@
 
   <div class="mega" id="mega" data-mega>
     <div class="mega__inner wrap">
-      <div class="mega__col">
-        <p class="eyebrow">Comprar por categoría</p>
-        <ul class="mega__list" data-cat-links></ul>
+      <div class="mega__col mega__col--cats">
+        <p class="mega__head">Categorías</p>
+        <ul class="mega__links mega__links--2" data-cat-links><li><a href="tienda.html"><span>Ver todo</span></a></li></ul>
       </div>
       <div class="mega__col">
-        <p class="eyebrow">Descubre</p>
-        <ul class="mega__list mega__list--small">
-          <li><a href="tienda.html?orden=novedades">Novedades</a></li>
-          <li><a href="tienda.html?oferta=1">Ofertas</a></li>
-          <li><a href="index.html#lookbook">Lookbook 2026</a></li>
-          <li><a href="ayuda.html#tallas">Guía de tallas</a></li>
-          <li><a href="ayuda.html#envios">Envíos y devoluciones</a></li>
+        <p class="mega__head">Destacados</p>
+        <ul class="mega__links">
+          <li><a href="tienda.html?orden=novedades"><span>Novedades</span><i class="mega__tag">Nuevo</i></a></li>
+          <li><a href="tienda.html?oferta=1"><span>Ofertas</span></a></li>
+          <li><a href="index.html#coleccion"><span>Colección Horas Lentas</span></a></li>
+          <li><a href="index.html#lookbook"><span>Lookbook 2026</span></a></li>
         </ul>
       </div>
-      <a class="mega__card" href="index.html#coleccion">
-        <span class="mega__img"><img src="assets/img/col-main-0.webp" alt="" width="640" height="960" loading="lazy" decoding="async"></span>
-        <span class="mega__cap"><em>Colección</em> Horas Lentas <svg class="i"><use href="#i-arrow"/></svg></span>
-      </a>
-      <a class="mega__card" href="tienda.html?cat=abrigos">
-        <span class="mega__img"><img src="assets/img/abrigo-camel-0.webp" alt="" width="480" height="600" loading="lazy" decoding="async"></span>
-        <span class="mega__cap"><em>Abrigos</em> de temporada <svg class="i"><use href="#i-arrow"/></svg></span>
-      </a>
+      <div class="mega__col">
+        <p class="mega__head">Ayuda</p>
+        <ul class="mega__links">
+          <li><a href="ayuda.html#tallas"><span>Guía de tallas</span></a></li>
+          <li><a href="ayuda.html#envios"><span>Envíos y devoluciones</span></a></li>
+          <li><a href="ayuda.html#pedidos"><span>Mis pedidos</span></a></li>
+          <li><a href="ayuda.html#contacto"><span>Contacto</span></a></li>
+        </ul>
+      </div>
+      <div class="mega__feature">
+        <a class="mega__card" href="index.html#coleccion">
+          <span class="mega__img"><img src="assets/img/col-main-0.webp" alt="" width="640" height="960" loading="lazy" decoding="async"></span>
+          <span class="mega__cap"><small>Nueva colección</small><b>Horas Lentas</b></span>
+        </a>
+        <a class="mega__card" href="tienda.html?cat=abrigos">
+          <span class="mega__img"><img src="assets/img/abrigo-camel-0.webp" alt="" width="480" height="600" loading="lazy" decoding="async"></span>
+          <span class="mega__cap"><small>Temporada</small><b>Abrigos</b></span>
+        </a>
+      </div>
     </div>
   </div>
 </header>
@@ -350,26 +363,47 @@
 </main>
 
 <footer class="ftr" data-theme="dark">
-  <div class="ftr__top wrap">
-    <div class="ftr__news">
+  <div class="ftr__news wrap">
+    <div class="ftr__news-head">
       <p class="eyebrow">Newsletter</p>
-      <h2 class="ftr__title" data-split>Únete al <em>círculo</em> Rose Valer</h2>
+      <h2 class="ftr__title">Únete al <em>círculo</em> Rose Valer</h2>
+    </div>
+    <div class="ftr__news-body">
       <p class="ftr__lead">Novedades, lanzamientos y acceso anticipado a cada colección. Sin ruido, solo lo que merece la pena.</p>
       <form class="news-form" data-news-form novalidate>
         <label class="sr-only" for="news-email">Tu correo electrónico</label>
         <input id="news-email" type="email" name="email" placeholder="Tu correo electrónico" autocomplete="email" required>
-        <button class="btn btn--light" type="submit"><span>Suscribirme</span><svg class="i"><use href="#i-arrow"/></svg></button>
-        <p class="news-form__msg" data-news-msg aria-live="polite"></p>
+        <button class="news-form__btn" type="submit" aria-label="Suscribirme"><span>Suscribirme</span><svg class="i"><use href="#i-arrow"/></svg></button>
       </form>
+      <p class="news-form__msg" data-news-msg aria-live="polite"></p>
       <p class="ftr__legal-note">Al suscribirte aceptas nuestra <a href="ayuda.html#legal">política de privacidad</a>.</p>
     </div>
-    <nav class="ftr__cols" aria-label="Pie de página">
-      <div class="ftr__col">
-        <p class="ftr__head">Tienda</p>
-        <ul data-cat-links><li><a href="tienda.html">Ver todo</a></li></ul>
+  </div>
+
+  <div class="ftr__main wrap">
+    <div class="ftr__brand">
+      <a class="ftr__logo" href="index.html" aria-label="Rose Valer, ir al inicio">
+        <svg class="ftr__mono" viewBox="9 9.2 416.6 434.6" aria-hidden="true"><use href="#rv-mono"/></svg>
+      </a>
+      <p class="ftr__claim">Prendas que <em>valen</em> la pena.</p>
+      <ul class="ftr__perks">
+        <li><svg class="i"><use href="#i-truck"/></svg>Envío gratis desde 50 €</li>
+        <li><svg class="i"><use href="#i-return"/></svg>Devoluciones en 30 días</li>
+        <li><svg class="i"><use href="#i-lock"/></svg>Pago 100 % seguro</li>
+      </ul>
+      <div class="ftr__social" data-socials>
+        <a href="#" data-social="instagram" aria-label="Instagram" hidden><svg class="i"><use href="#i-instagram"/></svg></a>
+        <a href="#" data-social="tiktok" aria-label="TikTok" hidden><svg class="i"><use href="#i-tiktok"/></svg></a>
+        <a href="#" data-social="pinterest" aria-label="Pinterest" hidden><svg class="i"><use href="#i-pinterest"/></svg></a>
       </div>
-      <div class="ftr__col">
-        <p class="ftr__head">Ayuda</p>
+    </div>
+    <nav class="ftr__cols" aria-label="Pie de página">
+      <details class="ftr__col" data-ftr-col>
+        <summary class="ftr__head">Tienda<svg class="i"><use href="#i-plus"/></svg></summary>
+        <ul data-cat-links><li><a href="tienda.html">Ver todo</a></li></ul>
+      </details>
+      <details class="ftr__col" data-ftr-col>
+        <summary class="ftr__head">Ayuda<svg class="i"><use href="#i-plus"/></svg></summary>
         <ul>
           <li><a href="ayuda.html#envios">Envíos</a></li>
           <li><a href="ayuda.html#devoluciones">Cambios y devoluciones</a></li>
@@ -378,38 +412,31 @@
           <li><a href="ayuda.html#pedidos">Mis pedidos</a></li>
           <li><a href="ayuda.html#contacto">Contacto</a></li>
         </ul>
-      </div>
-      <div class="ftr__col">
-        <p class="ftr__head">Rose Valer</p>
+      </details>
+      <details class="ftr__col" data-ftr-col>
+        <summary class="ftr__head">Rose Valer<svg class="i"><use href="#i-plus"/></svg></summary>
         <ul>
+          <li><a href="tienda.html?orden=novedades">Novedades</a></li>
           <li><a href="index.html#coleccion">Colección</a></li>
           <li><a href="index.html#lookbook">Lookbook</a></li>
-          <li><a href="tienda.html?orden=novedades">Novedades</a></li>
+          <li><a href="ayuda.html#legal">Aviso legal</a></li>
         </ul>
-        <div class="ftr__social" data-socials>
-          <a href="#" data-social="instagram" aria-label="Instagram" hidden><svg class="i"><use href="#i-instagram"/></svg></a>
-          <a href="#" data-social="tiktok" aria-label="TikTok" hidden><svg class="i"><use href="#i-tiktok"/></svg></a>
-          <a href="#" data-social="pinterest" aria-label="Pinterest" hidden><svg class="i"><use href="#i-pinterest"/></svg></a>
-        </div>
-      </div>
+      </details>
     </nav>
   </div>
 
-  <div class="ftr__brand wrap" data-reveal="rise">
-    <svg class="ftr__mono" viewBox="9 9.2 416.6 434.6" aria-hidden="true"><use href="#rv-mono"/></svg>
-    <svg class="ftr__word" viewBox="8.8 9.1 791.5 70.7" role="img" aria-label="Rose Valer"><use href="#rv-word"/></svg>
-    <svg class="ftr__tag" viewBox="7.3 8.2 691 24.8" aria-hidden="true"><use href="#rv-tag"/></svg>
+  <div class="ftr__giant wrap" aria-hidden="true">
+    <svg viewBox="8.8 9.1 791.5 70.7"><use href="#rv-word"/></svg>
   </div>
 
   <div class="ftr__bottom wrap">
-    <p>© <span data-year>2026</span> Rose Valer. Todos los derechos reservados.</p>
+    <p>© <span data-year>2026</span> Rose Valer</p>
     <nav class="ftr__legal" aria-label="Legal">
-      <a href="ayuda.html#legal">Aviso legal</a>
       <a href="ayuda.html#legal">Privacidad</a>
       <a href="ayuda.html#legal">Cookies</a>
       <a href="ayuda.html#legal">Condiciones de venta</a>
     </nav>
-    <p class="ftr__secure"><svg class="i"><use href="#i-lock"/></svg> Pago 100 % seguro</p>
+    <p class="ftr__locale">España · EUR €</p>
   </div>
   <button class="to-top" type="button" data-to-top aria-label="Volver arriba">
     <svg class="to-top__ring" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22"/><circle class="to-top__progress" cx="24" cy="24" r="22" pathLength="1"/></svg>
@@ -418,95 +445,56 @@
 </footer>
 
 <dialog class="menu" id="menu" aria-label="Menú">
-  <div class="menu__wm" aria-hidden="true"><svg viewBox="9 9.2 416.6 434.6"><use href="#rv-mono"/></svg></div>
   <div class="menu__top">
     <a class="menu__logo" href="index.html" aria-label="Rose Valer, ir al inicio">
       <svg viewBox="9 9.2 416.6 434.6" class="menu__mono" aria-hidden="true"><use href="#rv-mono"/></svg>
       <svg viewBox="8.8 9.1 791.5 70.7" class="menu__word" aria-hidden="true"><use href="#rv-word"/></svg>
     </a>
-    <button class="menu__close" type="button" data-close aria-label="Cerrar menú">
-      <span>Cerrar</span><i aria-hidden="true"></i>
-    </button>
+    <button class="menu__close" type="button" data-close aria-label="Cerrar menú"><svg class="i"><use href="#i-close"/></svg></button>
   </div>
 
   <div class="menu__body">
-    <div class="menu__panels" data-panels>
-      <!-- Panel principal -->
-      <section class="menu__panel is-current" data-panel="root" aria-label="Navegación">
-        <ul class="menu__list">
-          <li style="--i:0">
-            <button type="button" class="menu__item" data-panel-go="tienda" aria-controls="menu-tienda">
-              <span class="menu__idx">01</span><span class="menu__label">Tienda</span>
-              <svg class="i menu__chev"><use href="#i-arrow"/></svg>
-            </button>
-          </li>
-          <li style="--i:1">
-            <a class="menu__item" href="tienda.html?orden=novedades">
-              <span class="menu__idx">02</span><span class="menu__label">Novedades</span>
-              <sup class="menu__sup" data-count-new></sup>
-            </a>
-          </li>
-          <li style="--i:2">
-            <a class="menu__item" href="index.html#coleccion" data-close-on-click>
-              <span class="menu__idx">03</span><span class="menu__label"><em>Colección</em></span>
-            </a>
-          </li>
-          <li style="--i:3">
-            <a class="menu__item" href="index.html#lookbook" data-close-on-click>
-              <span class="menu__idx">04</span><span class="menu__label">Lookbook</span>
-            </a>
-          </li>
-          <li style="--i:4">
-            <a class="menu__item" href="ayuda.html">
-              <span class="menu__idx">05</span><span class="menu__label">Ayuda</span>
-            </a>
-          </li>
+    <button type="button" class="menu__search" data-open="search">
+      <svg class="i"><use href="#i-search"/></svg><span>Buscar prendas, colores…</span>
+    </button>
+
+    <nav class="menu__block" aria-label="Tienda">
+      <p class="menu__label">Tienda</p>
+      <ul class="menu__cats" data-menu-cats></ul>
+    </nav>
+
+    <a class="menu__promo" href="index.html#coleccion" data-close-on-click>
+      <img src="assets/img/col-main-0.webp" alt="" width="640" height="960" loading="lazy" decoding="async">
+      <span class="menu__promo-txt"><small>Nueva colección</small><b>Horas Lentas</b><u>Descubrir</u></span>
+    </a>
+
+    <div class="menu__minor">
+      <nav aria-label="Descubre">
+        <p class="menu__label">Descubre</p>
+        <ul>
+          <li><a href="index.html#lookbook" data-close-on-click>Lookbook 2026</a></li>
+          <li><a href="index.html#coleccion" data-close-on-click>Colección</a></li>
+          <li><a href="tienda.html?oferta=1">Ofertas</a></li>
         </ul>
-      </section>
-
-      <!-- Submenú de la tienda -->
-      <section class="menu__panel" data-panel="tienda" id="menu-tienda" aria-label="Categorías">
-        <button type="button" class="menu__back" data-panel-back>
-          <svg class="i"><use href="#i-arrow-left"/></svg> Volver
-        </button>
-        <p class="menu__title">Tienda</p>
-        <ul class="menu__cats" data-menu-cats></ul>
-      </section>
+      </nav>
+      <nav aria-label="Ayuda">
+        <p class="menu__label">Ayuda</p>
+        <ul>
+          <li><a href="ayuda.html#envios">Envíos y devoluciones</a></li>
+          <li><a href="ayuda.html#tallas">Guía de tallas</a></li>
+          <li><a href="ayuda.html#pedidos">Mis pedidos</a></li>
+          <li><a href="ayuda.html#contacto">Contacto</a></li>
+        </ul>
+      </nav>
     </div>
-
-    <aside class="menu__feature" aria-label="Destacados">
-      <p class="eyebrow">Destacados</p>
-      <div class="menu__cards">
-        <a class="menu__card" href="index.html#coleccion" data-close-on-click>
-          <img src="assets/img/col-main-0.webp" alt="" width="640" height="960" loading="lazy" decoding="async">
-          <span><em>Colección</em><b>Horas Lentas</b></span>
-        </a>
-        <a class="menu__card" href="tienda.html?cat=punto">
-          <img src="assets/img/jersey-trenzado-crema-0.webp" alt="" width="480" height="600" loading="lazy" decoding="async">
-          <span><em>Nuevo</em><b>Punto</b></span>
-        </a>
-        <a class="menu__card" href="tienda.html?cat=abrigos">
-          <img src="assets/img/abrigo-camel-0.webp" alt="" width="480" height="600" loading="lazy" decoding="async">
-          <span><em>Temporada</em><b>Abrigos</b></span>
-        </a>
-      </div>
-    </aside>
   </div>
 
   <div class="menu__foot">
     <div class="menu__quick">
-      <button type="button" class="menu__qbtn" data-open="search"><svg class="i"><use href="#i-search"/></svg><span>Buscar</span></button>
       <button type="button" class="menu__qbtn" data-open="favs"><svg class="i"><use href="#i-heart"/></svg><span>Favoritos</span><b data-fav-count hidden>0</b></button>
-      <button type="button" class="menu__qbtn" data-open="cart"><svg class="i"><use href="#i-bag"/></svg><span>Cesta</span><b data-cart-count hidden>0</b></button>
+      <button type="button" class="menu__qbtn menu__qbtn--dark" data-open="cart"><svg class="i"><use href="#i-bag"/></svg><span>Cesta</span><b data-cart-count hidden>0</b></button>
     </div>
-    <div class="menu__info">
-      <p><svg class="i"><use href="#i-truck"/></svg> Envío gratis desde 50 € · Devoluciones 30 días</p>
-      <nav class="menu__links" aria-label="Ayuda">
-        <a href="ayuda.html#envios">Envíos</a>
-        <a href="ayuda.html#contacto">Contacto</a>
-        <a href="ayuda.html#pedidos">Mis pedidos</a>
-      </nav>
-    </div>
+    <p class="menu__note"><svg class="i"><use href="#i-truck"/></svg> Envío gratis desde 50 € · Devoluciones en 30 días</p>
   </div>
 </dialog>
 

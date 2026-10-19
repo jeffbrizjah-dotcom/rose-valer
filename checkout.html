@@ -21,7 +21,10 @@
   /* Antes de pintar: activar JS, saltar la intro si ya se vio en esta sesión y respetar "reducir movimiento" */
   (function (h) {
     h.classList.add('js');
-    try { if (sessionStorage.getItem('rv:intro')) h.classList.add('no-intro'); } catch (e) { h.classList.add('no-intro'); }
+    // La intro sale en la primera visita y SIEMPRE al recargar; al navegar por enlaces internos no
+    var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+    var recarga = nav ? nav.type === 'reload' : (performance.navigation && performance.navigation.type === 1);
+    try { if (!recarga && sessionStorage.getItem('rv:intro')) h.classList.add('no-intro'); } catch (e) { if (!recarga) h.classList.add('no-intro'); }
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) h.classList.add('rm');
   })(document.documentElement);
 </script>

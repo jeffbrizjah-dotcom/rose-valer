@@ -337,15 +337,20 @@ const countIn = (cat) => PRODUCTS.filter((p) => p.cat === cat).length;
 function fillCategoryLinks() {
   $$('[data-cat-links]').forEach((ul) => {
     const inMega = !!ul.closest('.mega');
-    ul.insertAdjacentHTML('beforeend', CATEGORIES.map((c) =>
-      `<li><a href="tienda.html?cat=${c.id}">${c.name}${inMega ? ` <small>${countIn(c.id)}</small>` : ''}</a></li>`).join(''));
+    ul.insertAdjacentHTML('beforeend', CATEGORIES.map((c) => (inMega
+      ? `<li><a href="tienda.html?cat=${c.id}"><span>${c.name}</span><small>${countIn(c.id)}</small></a></li>`
+      : `<li><a href="tienda.html?cat=${c.id}">${c.name}</a></li>`)).join(''));
   });
   const menuCats = $('[data-menu-cats]');
   if (menuCats) {
-    menuCats.innerHTML = `<li style="--i:0"><a href="tienda.html"><span class="menu__cat-all">${icon('grid-2')}</span><b>Ver todo</b><small>${PRODUCTS.length}</small></a></li>` +
-      CATEGORIES.map((c, i) => `<li style="--i:${i + 1}"><a href="tienda.html?cat=${c.id}"><img src="${srcP(c.img, 0)}" alt="" width="52" height="64" loading="lazy" decoding="async"><b>${c.name}</b><small>${countIn(c.id)}</small></a></li>`).join('');
+    const nuevos = PRODUCTS.filter((p) => p.isNew).length;
+    const row = (i, href, thumb, name, count) => `<li style="--i:${i}"><a href="${href}">${thumb}<b>${name}</b><small>${count}</small>${icon('chev-right', 'menu__chev')}</a></li>`;
+    menuCats.innerHTML =
+      row(0, 'tienda.html?orden=novedades', `<span class="menu__thumb menu__thumb--icon">${icon('spark')}</span>`, 'Novedades<span class="menu__new">Nuevo</span>', nuevos) +
+      row(1, 'tienda.html', `<span class="menu__thumb menu__thumb--icon">${icon('grid-2')}</span>`, 'Ver todo', PRODUCTS.length) +
+      CATEGORIES.map((c, i) => row(i + 2, `tienda.html?cat=${c.id}`,
+        `<span class="menu__thumb"><img src="${srcP(c.img, 0)}" alt="" width="44" height="54" loading="lazy" decoding="async"></span>`, c.name, countIn(c.id))).join('');
   }
-  $$('[data-count-new]').forEach((el) => { el.textContent = PRODUCTS.filter((p) => p.isNew).length; });
 }
 
 /* ---------- menú móvil / tablet ---------- */
@@ -360,34 +365,29 @@ function initMenu() {
   const menu = $('#menu');
   if (!menu) return;
   const burger = $('[data-open="menu"]');
-  const panels = $$('[data-panel]', menu);
-  const show = (name) => {
-    panels.forEach((p) => {
-      const cur = p.dataset.panel === name;
-      p.classList.toggle('is-current', cur);
-      p.classList.toggle('is-behind', !cur && p.dataset.panel === 'root');
-      p.inert = !cur;
-    });
-    const target = panels.find((p) => p.dataset.panel === name);
-    requestAnimationFrame(() => target?.querySelector('a, button')?.focus({ preventScroll: true }));
-  };
   menu.addEventListener('click', (e) => {
-    const go = e.target.closest('[data-panel-go]');
-    if (go) { show(go.dataset.panelGo); return; }
-    if (e.target.closest('[data-panel-back]')) { show('root'); return; }
     const link = e.target.closest('a[data-close-on-click]');
-    if (link) {
-      const url = new URL(link.href);
-      if (pagePath(url.pathname) === pagePath() && url.hash) {
-        e.preventDefault();
-        closeLayer(menu, { restoreFocus: false });
-        setTimeout(() => $(url.hash)?.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' }), 350);
-      }
+    if (!link) return;
+    const url = new URL(link.href);
+    if (pagePath(url.pathname) === pagePath() && url.hash) {
+      e.preventDefault();
+      closeLayer(menu, { restoreFocus: false });
+      setTimeout(() => $(url.hash)?.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' }), 350);
     }
   });
-  menu.addEventListener('layer:open', () => { show('root'); burger?.setAttribute('aria-expanded', 'true'); });
+  menu.addEventListener('layer:open', () => burger?.setAttribute('aria-expanded', 'true'));
   menu.addEventListener('layer:close', () => burger?.setAttribute('aria-expanded', 'false'));
   matchMedia('(min-width: 1024px)').addEventListener('change', (e) => { if (e.matches && menu.open) closeLayer(menu); });
+}
+
+/* ---------- columnas del pie: desplegables en móvil, abiertas desde tablet ---------- */
+function initFooterCols() {
+  const cols = $$('[data-ftr-col]');
+  const wide = matchMedia('(min-width: 768px)');
+  const sync = () => cols.forEach((d) => { d.open = wide.matches; });
+  sync();
+  wide.addEventListener('change', sync);
+  cols.forEach((d) => d.querySelector('summary').addEventListener('click', (e) => { if (wide.matches) e.preventDefault(); }));
 }
 
 /* ---------- cesta ---------- */
@@ -604,7 +604,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 export const isEmail = (v) => EMAIL_RE.test(String(v).trim());
 function initNewsletter() {
   $$('[data-news-form]').forEach((form) => {
-    const msg = $('[data-news-msg]', form);
+    const msg = form.parentElement.querySelector('[data-news-msg]');
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const email = form.email.value.trim();
@@ -694,6 +694,7 @@ export function initUI() {
   initHeader();
   fillCategoryLinks();
   initMenu();
+  initFooterCols();
   initCart();
   initSearch();
   initNewsletter();
